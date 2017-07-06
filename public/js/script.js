@@ -4,7 +4,33 @@ var initMap = function() {
     center: {lat: 29.7604, lng: -95.3698},
     zoom: 10
   });
-
+  //Set up Elevation
+var elevator = new google.maps.ElevationService;
+var infowindow = new google.maps.InfoWindow({map: map});
+map.addListener('click', function(event) {
+    displayLocationElevation(event.latLng, elevator, infowindow);
+  });
+// Elevation display
+function displayLocationElevation(location, elevator, infowindow) {
+  // Initiate the location request
+  elevator.getElevationForLocations({
+    'locations': [location]
+  }, function(results, status) {
+    infowindow.setPosition(location);
+    if (status === 'OK') {
+      // Retrieve the first result
+      if (results[0]) {
+        // Open the infowindow indicating the elevation at the clicked position.
+        infowindow.setContent('The elevation at this point <br>is ' +
+            results[0].elevation + ' meters.');
+      } else {
+        infowindow.setContent('No results found');
+      }
+    } else {
+      infowindow.setContent('Elevation service failed due to: ' + status);
+    }
+  });
+}
   // if brower support available, ask user for location data and set the map view
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
@@ -43,7 +69,7 @@ var initMap = function() {
 //     };
 //     map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
 
-    //Load Images and add them to imageArray
+    //Load Radar Images and add them to imageArray
     tileNEX = new google.maps.ImageMapType({
         getTileUrl: function(tile, zoom) {
             return "http://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/" + zoom + "/" + tile.x + "/" + tile.y +".png?"+ (new Date()).getTime(); 
@@ -127,7 +153,7 @@ var initMap = function() {
 
   //}
 
-  google.maps.event.addDomListener(window, 'load', initialize);
+  google.maps.event.addDomListener(window, 'load', initMap);
 
   function animateRadar() {
     var index = map.overlayMapTypes.getLength() - 1;
